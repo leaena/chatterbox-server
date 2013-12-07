@@ -4,6 +4,10 @@
  * You'll have to figure out a way to export this function from
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
+var url = require('url');
+var chatMessages = [];
+
+var http = require("http");
 
 var handleRequest = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
@@ -15,6 +19,25 @@ var handleRequest = function(request, response) {
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   var statusCode = 200;
+  var urlParse = url.parse(request.url);
+  var postData = "";
+  var requestMethod = request.method
+  request.on('data', function(datum) {
+    postData += datum;
+    if (urlParse.pathname.indexOf('/classes') !== -1 && requestMethod === 'POST') {
+      statusCode = 201;
+      chatMessages.push(JSON.parse(postData));
+    }
+
+  });
+
+  request.on('end', function() {
+  });
+  
+
+  if(urlParse.pathname.indexOf('/classes') === -1){
+    statusCode = 404;
+  }
 
   /* Without this line, this server wouldn't work. See the note
    * below about CORS. */
@@ -29,7 +52,7 @@ var handleRequest = function(request, response) {
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-  response.end("Hello, World!");
+  response.end(JSON.stringify(chatMessages));
 };
 
 /* These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -43,3 +66,5 @@ var defaultCorsHeaders = {
   "access-control-allow-headers": "content-type, accept",
   "access-control-max-age": 10 // Seconds.
 };
+
+exports.handleRequest = handleRequest;

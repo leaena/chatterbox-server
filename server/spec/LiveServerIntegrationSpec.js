@@ -9,7 +9,7 @@ describe("Live Node Chat Server", function() {
            });
  });
 
- it("Should accept posts to /send", function(done) {
+ xit("Should accept posts to /send", function(done) {
    request({method: "POST",
             uri: "http://127.0.0.1:8080/classes/messages",
             json: {username: "Jono",
