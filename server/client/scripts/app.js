@@ -3,11 +3,11 @@ var currentRoom;
 var currentRoomUrl;
 var friends = [];
 var Chat = Backbone.Model.extend({
-  url: 'http://127.0.0.1:8080/classes/messages',//?order=-createdAt&limit=20' + (currentRoomUrl || "");
+  url: 'http://aqueous-island-6585.herokuapp.com/classes/messages',//?order=-createdAt&limit=20' + (currentRoomUrl || "");
   receive: function(options){
     $.ajax({
       // always use this url
-      url: 'http://127.0.0.1:8080/classes/messages?order=-createdAt&limit=20' + (currentRoomUrl || ""),
+      url: 'http://aqueous-island-6585.herokuapp.com/classes/messages?order=-createdAt&limit=20' + (currentRoomUrl || ""),
       type: 'GET',
       contentType: 'application/json',
       success: options.success

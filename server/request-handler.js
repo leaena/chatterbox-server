@@ -26,22 +26,27 @@ var handleRequest = function(request, response) {
   var urlParse = url.parse(request.url);
   var postData = "";
   var requestMethod = request.method
+  var headers = defaultCorsHeaders;
 
   if (urlParse.pathname.indexOf('/classes') !== -1){
     fs.readFile('data.txt', 'utf8',function (err, data) {
       if (err) {
         return err;
-      } else {
-        data = JSON.parse(data);
-        console.log(data);
-        chatMessages = ;
+      } else if(data) {
+        var file = JSON.parse(data);
+        chatMessages = file;
       }
     });
     request.on('data', function(datum) {
       postData += datum;
       if (requestMethod === 'POST') {
         statusCode = 201;
-        chatMessages.push(JSON.parse(postData));
+        var stream = fs.createWriteStream("data.txt");
+        stream.once('open', function(fd) {
+          chatMessages.push(JSON.parse(postData))
+          stream.write(JSON.stringify(chatMessages));
+          stream.end();
+        });
       }
 
     });
@@ -55,17 +60,11 @@ var handleRequest = function(request, response) {
 
     /* Without this line, this server wouldn't work. See the note
      * below about CORS. */
-    var headers = defaultCorsHeaders;
 
     headers['Content-Type'] = "text/plain";
 
     /* .writeHead() tells our server what HTTP status code to send back */
     response.writeHead(statusCode, headers);
-    var stream = fs.createWriteStream("data.txt");
-    stream.once('open', function(fd) {
-      stream.write(JSON.stringify(chatMessages));
-      stream.end();
-    });
     /* Make sure to always call response.end() - Node will not send
      * anything back to the client until you do. The string you pass to
      * response.end() will be the body of the response - i.e. what shows
@@ -73,21 +72,26 @@ var handleRequest = function(request, response) {
     response.end(JSON.stringify(chatMessages));
   } else if (urlParse.pathname === "/") {
 
-    fs.readFile('client/index.html', function (err, html) {
+    fs.readFile('server/client/index.html', function (err, html) {
       if (err) {
           throw err;
       }
-      response.writeHeader(200, {"Content-Type": "text/html"});  // <-- HERE!
+      headers['Content-Type'] = 'text/html';
+
+      response.writeHeader(200, headers);  // <-- HERE!
       response.write(html);
       response.end();
     });
   } else {
     var contentType = mime[path.extname(urlParse.pathname)];
-    fs.readFile('client/' + urlParse.pathname, function (err, html) {
+    fs.readFile('server/client/' + urlParse.pathname, function (err, html) {
       if (err) {
           throw err;
       }
-      response.writeHeader(200, {"Content-Type": contentType});  // <-- HERE!
+
+      headers['Content-Type'] = contentType;
+
+      response.writeHeader(200, headers);  // <-- HERE!
       response.write(html);
       response.end();
     });
